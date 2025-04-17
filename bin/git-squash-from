@@ -46,8 +46,18 @@ sed -i '' '2,$s/^pick /squash /' "$1"
 EOSCRIPT
     chmod +x "$seq_script"
 
-    # Start rebase with squash
-    GIT_SEQUENCE_EDITOR="$seq_script" git rebase -i "${base_hash}^"
+    # Check if the user wants to squash all commits from the root
+    if [ "$choice" -eq "$i" ]; then
+      echo "🔧 Squashing all commits from the root..."
+      rebase_cmd="git rebase -i --root"
+    else
+      echo "🔧 Squashing commits from ${base_hash}^ to HEAD..."
+      rebase_cmd="git rebase -i ${base_hash}^"
+    fi
+
+    # Start rebase with interactive squashing
+    GIT_SEQUENCE_EDITOR="$seq_script" $rebase_cmd
+
     rm -f "$seq_script"
 
     # Check for paused rebase and inject commit message
